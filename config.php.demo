@@ -9,7 +9,7 @@ $GLOBALS['wbb'] = array(
 	'dbuser' => 'myUser',
 	'dbpass' => 'myPass',
 	'db'	 => 'database',
-	'port'	 => 3306,
+	'dbport' => 3306,
 	'id'	 => 1,
 	'path'	 => '/var/www/wbb/htdocs/'
 );
@@ -23,6 +23,6 @@ $GLOBALS['mybb'] = array(
 	'dbuser' => 'myUser',
 	'dbpass' => 'myPass',
 	'db'	 => 'database',
-	'port'	 => 3306,
+	'dbport' => 3306,
 	'path'	 => '/var/www/my/htdocs/'
 );
