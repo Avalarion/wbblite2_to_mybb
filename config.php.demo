@@ -1,0 +1,28 @@
+<?php
+
+/**
+ * $GLOBALS['wbb']
+ * Please enter informations for WBB here
+ */
+$GLOBALS['wbb'] = array(
+	'dbhost' => 'localhost',
+	'dbuser' => 'myUser',
+	'dbpass' => 'myPass',
+	'db'	 => 'database',
+	'port'	 => 3306,
+	'id'	 => 1,
+	'path'	 => '/var/www/wbb/htdocs/'
+);
+
+/**
+ * $GLOBALS['mybb']
+ * Please enter informations for MyBB here
+ */
+$GLOBALS['mybb'] = array(
+	'dbhost' => 'localhost',
+	'dbuser' => 'myUser',
+	'dbpass' => 'myPass',
+	'db'	 => 'database',
+	'port'	 => 3306,
+	'path'	 => '/var/www/my/htdocs/'
+);
