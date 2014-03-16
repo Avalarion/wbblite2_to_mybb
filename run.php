@@ -132,7 +132,7 @@ class WBBLite2Exporter_MyBBImporter {
 				"' . $this->mybbDb->real_escape_string($user['password']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['email']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['userTitle']) . '", 
-				' . $isAdmin . '
+				' . $isAdmin . ',
 				"' . $this->mybbDb->real_escape_string($user['registrationDate']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['lastActivityTime']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['lastActivityTime']) . '", 
