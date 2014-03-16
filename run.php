@@ -154,6 +154,7 @@ class WBBLite2Exporter_MyBBImporter {
 				1,
 				1
 			);';
+echo $query;
 			if(!$this->mybbDb->query($query))
 				throw new Exception('User Query failed: ' . $this->mybbDb->error . PHP_EOL . $query);
 		}
