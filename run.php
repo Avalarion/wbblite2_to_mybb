@@ -7,10 +7,7 @@
  * Missing and / or not planned:
  * + Userfields
  * + Private Messages
- */
-
-/**
- * TODO: Gruppen
+ * + Gruppen
  */
 
 
@@ -120,10 +117,14 @@ class WBBLite2Exporter_MyBBImporter {
 	 * @return void
 	 */
 	protected function setMyBbUsers($users) {
+		$adminUsers = explode(',', $GLOBALS['mybb']['adminUser']);
 		$this->mybbDb->query('TRUNCATE mybb_users;');
 		foreach($users as $user) {
 			$this->printVerboseLine('++ User: ' . $user['username']);
-			$query = 'INSERT INTO mybb_users (uid, username, salt, password, email, usertitle, regdate, lastactive, lastvisit, lastpost, signature, allownotices, hideemail, subscriptionmethod, invisible, receivepms,receivefrombuddy, pmnotice, pmnotify, showsigs, showavatars, showquickreply, showredirect, showcodebuttons, usernotes) 
+			$isAdmin = in_array($user['userID'], $adminUsers) ? '4' : '0';
+			$query = 'INSERT INTO mybb_users (uid, username, salt, password, email, usertitle, usergroup, regdate, lastactive, lastvisit, lastpost, signature, 
+				allownotices, hideemail, subscriptionmethod, invisible, receivepms,receivefrombuddy, pmnotice, pmnotify, showsigs, showavatars, 
+				showquickreply, showredirect, showcodebuttons, usernotes) 
 			VAlUES(
 				"' . $this->mybbDb->real_escape_string($user['userID']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['username']) . '", 
@@ -131,6 +132,7 @@ class WBBLite2Exporter_MyBBImporter {
 				"' . $this->mybbDb->real_escape_string($user['password']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['email']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['userTitle']) . '", 
+				"' . $isAdmin . '"
 				"' . $this->mybbDb->real_escape_string($user['registrationDate']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['lastActivityTime']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['lastActivityTime']) . '", 
@@ -149,10 +151,11 @@ class WBBLite2Exporter_MyBBImporter {
 				1,
 				1,
 				1,
+				1,
 				1
 			);';
 			if(!$this->mybbDb->query($query))
-				throw new Exception('User Query failed: ' . $this->mybbDb->error);
+				throw new Exception('User Query failed: ' . $this->mybbDb->error . PHP_EOL . $query);
 		}
 	}
 
@@ -198,12 +201,15 @@ class WBBLite2Exporter_MyBBImporter {
 		$this->mybbDb->query('TRUNCATE mybb_forums;');
 		foreach($boards as $board) {
 			$this->printVerboseLine('++ Board: ' . $board['title']);
-			$query = 'INSERT INTO mybb_forums (fid, name, description, pid) 
+			$query = 'INSERT INTO mybb_forums (fid, name, description, pid, active, open, type) 
 			VAlUES(
 				"' . $this->mybbDb->real_escape_string($board['boardID']) . '", 
 				"' . $this->mybbDb->real_escape_string($board['title']) . '", 
 				"' . $this->mybbDb->real_escape_string($board['description']) . '", 
-				"' . $this->mybbDb->real_escape_string($board['parentID']) . '"
+				"' . $this->mybbDb->real_escape_string($board['parentID']) . '",
+				1,
+				1,
+				"' . ( ($boardType === 1) ? 'c' : 'f' ) . '"
 			);';
 			if(!$this->mybbDb->query($query))
 				throw new Exception('Board Query failed: ' . $this->mybbDb->error);
@@ -249,11 +255,12 @@ class WBBLite2Exporter_MyBBImporter {
 		$this->mybbDb->query('TRUNCATE mybb_threads;');
 		foreach($threads as $thread) {
 			$this->printVerboseLine('++ Threads: ' . $thread['topic']);
-			$query = 'INSERT INTO mybb_threads (tid, subject, fid) 
+			$query = 'INSERT INTO mybb_threads (tid, subject, fid, visible) 
 			VAlUES(
 				"' . $this->mybbDb->real_escape_string($thread['threadID']) . '", 
 				"' . $this->mybbDb->real_escape_string($thread['topic']) . '", 
-				"' . $this->mybbDb->real_escape_string($thread['boardID']) . '" 
+				"' . $this->mybbDb->real_escape_string($thread['boardID']) . '",
+				1
 			);';
 			if(!$this->mybbDb->query($query))
 				throw new Exception('Thread Query failed: ' . $this->mybbDb->error);
@@ -299,7 +306,7 @@ class WBBLite2Exporter_MyBBImporter {
 		$this->mybbDb->query('TRUNCATE mybb_posts;');
 		foreach($posts as $post) {
 			$this->printVerboseLine('++ Posts: ' . $post['subject']);
-			$query = 'INSERT INTO mybb_posts (pid, tid, replyto, fid, subject, uid, username, dateline, message) 
+			$query = 'INSERT INTO mybb_posts (pid, tid, replyto, fid, subject, uid, username, dateline, message, visible, includesig) 
 			VAlUES(
 				"' . $this->mybbDb->real_escape_string($post['postID']) . '", 
 				"' . $this->mybbDb->real_escape_string($post['threadID']) . '", 
@@ -309,7 +316,9 @@ class WBBLite2Exporter_MyBBImporter {
 				"' . $this->mybbDb->real_escape_string($post['userID']) . '", 
 				"' . $this->mybbDb->real_escape_string($post['username']) . '", 
 				"' . $this->mybbDb->real_escape_string($post['time']) . '", 
-				"' . $this->mybbDb->real_escape_string($post['message']) . '"
+				"' . $this->mybbDb->real_escape_string($post['message']) . '",
+				1,
+				1
 			);';
 			if(!$this->mybbDb->query($query))
 				throw new Exception('Post Query failed: ' . $this->mybbDb->error);

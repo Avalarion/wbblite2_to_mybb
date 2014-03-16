@@ -24,5 +24,6 @@ $GLOBALS['mybb'] = array(
 	'dbpass' => 'myPass',
 	'db'	 => 'database',
 	'dbport' => 3306,
-	'path'	 => '/var/www/my/htdocs/'
+	'path'	 => '/var/www/my/htdocs/',
+	'adminUser' => '1,2,3,4'
 );
