@@ -6,8 +6,8 @@
  * Origin: https://github.com/Avalarion/wbblite2_to_mybb
  * Missing and / or not planned:
  * + Userfields
- * + Private Messages
- * + Gruppen
+ * + Groups
+ * + Avatars
  */
 
 
@@ -47,10 +47,10 @@ class WBBLite2Exporter_MyBBImporter {
 		try {
 			$this->generateDbConnections();
 			$this->copyUsers();
-				// Copy Avatars
 			$this->copyBoards();
 			$this->copyThreads();
 			$this->copyPosts();
+			$this->copyPrivateMessages();
 		}catch(Exception $e) {
 			$this->printLine($e->getMessage());
 			return 1;
@@ -200,6 +200,7 @@ class WBBLite2Exporter_MyBBImporter {
 	protected function setMyBbBoards($boards) {
 		$this->mybbDb->query('TRUNCATE mybb_forums;');
 		foreach($boards as $board) {
+			$boardType = ($board['boardType'] === 1) ? 'c' : 'f';
 			$this->printVerboseLine('++ Board: ' . $board['title']);
 			$query = 'INSERT INTO mybb_forums (fid, name, description, pid, active, open, type) 
 			VAlUES(
@@ -209,7 +210,7 @@ class WBBLite2Exporter_MyBBImporter {
 				"' . $this->mybbDb->real_escape_string($board['parentID']) . '",
 				1,
 				1,
-				"' . ( ($boardType === 1) ? 'c' : 'f' ) . '"
+				"' . $boardType . '"
 			);';
 			if(!$this->mybbDb->query($query))
 				throw new Exception('Board Query failed: ' . $this->mybbDb->error);
@@ -322,6 +323,63 @@ class WBBLite2Exporter_MyBBImporter {
 			);';
 			if(!$this->mybbDb->query($query))
 				throw new Exception('Post Query failed: ' . $this->mybbDb->error);
+		}
+	}
+
+	/**
+	 * function copyPrivateMessages
+	 * copies PrivateMessages from Wbb to myBB
+	 *
+	 * @return void
+	 */
+	protected function copyPrivateMessages() {
+		$this->printLine('Copy PrivateMessages');
+		$this->printLine('+ Fetching WBB PrivateMessages...');
+		$privateMessages = $this->getWbbPrivateMessages();
+		$this->printLine('+ Got ' . count($privateMessages) . ' PrivateMessages');
+		$this->printLine('+ Will now truncate PrivateMessages from MyBB and import WBB Ones');
+		$this->setMyBbPrivateMessages($privateMessages);
+		$this->printLine('+ PrivateMessagesImport Done.');
+	}
+
+	/**
+	 * function getWbbPrivateMessages
+	 * 
+	 * @return array
+	 */
+	protected function getWbbPrivateMessages() {
+		$query = 'SELECT wcf' . $GLOBALS['wbb']['id'] . '_pm.*, GROUP_CONCAT(wcf' . $GLOBALS['wbb']['id'] . '_pm_to_user.recipientID SEPARATOR ", ") as target FROM wcf' . $GLOBALS['wbb']['id'] . '_pm JOIN wcf' . $GLOBALS['wbb']['id'] . '_pm_to_user ON wcf' . $GLOBALS['wbb']['id'] . '_pm.pmID = wcf' . $GLOBALS['wbb']['id'] . '_pm_to_user.pmID GROUP BY wcf' . $GLOBALS['wbb']['id'] . '_pm_to_user.pmID;';
+		$privateMessages = $this->wbbDb->query($query);
+		$privateMessagesArray = array();
+		while(($tmp = $privateMessages->fetch_assoc()) != null)
+			$privateMessagesArray[] = $tmp;
+		return $privateMessagesArray;
+	}
+
+	/**
+	 * function setMyBbPrivateMessages
+	 *
+	 * @param array $privateMessages
+	 * @return void
+	 */
+	protected function setMyBbPrivateMessages($privateMessages) {
+		$this->mybbDb->query('TRUNCATE mybb_privatemessages;');
+		foreach($privateMessages as $privateMessage) {
+			$this->printVerboseLine('++ PrivateMessage: ' . $privateMessage['subject']);
+			$query = 'INSERT INTO mybb_privatemessages (pmid, uid, fromid, recipients, folder, subject, message, dateline, status) 
+			VAlUES(
+				"' . $this->mybbDb->real_escape_string($privateMessage['pmID']) . '", 
+				"' . $this->mybbDb->real_escape_string($privateMessage['userID']) . '", 
+				"' . $this->mybbDb->real_escape_string($privateMessage['userID']) . '", 
+				"' . $this->mybbDb->real_escape_string($privateMessage['target']) . '", 
+				' . 0 . ',
+				"' . $this->mybbDb->real_escape_string($privateMessage['subject']) . '",
+				"' . $this->mybbDb->real_escape_string($privateMessage['message']) . '",
+				"' . $this->mybbDb->real_escape_string($privateMessage['time']) . '",
+				1
+			);';
+			if(!$this->mybbDb->query($query))
+				throw new Exception('PrivateMessage Query failed: ' . $this->mybbDb->error . PHP_EOL . $query);
 		}
 	}
 
