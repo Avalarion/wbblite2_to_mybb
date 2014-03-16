@@ -121,7 +121,7 @@ class WBBLite2Exporter_MyBBImporter {
 		$this->mybbDb->query('TRUNCATE mybb_users;');
 		foreach($users as $user) {
 			$this->printVerboseLine('++ User: ' . $user['username']);
-			$isAdmin = in_array($user['userID'], $adminUsers) ? '4' : '0';
+			$isAdmin = in_array($user['userID'], $adminUsers) ? 4 : 0;
 			$query = 'INSERT INTO mybb_users (uid, username, salt, password, email, usertitle, usergroup, regdate, lastactive, lastvisit, lastpost, signature, 
 				allownotices, hideemail, subscriptionmethod, invisible, receivepms,receivefrombuddy, pmnotice, pmnotify, showsigs, showavatars, 
 				showquickreply, showredirect, showcodebuttons, usernotes) 
@@ -132,7 +132,7 @@ class WBBLite2Exporter_MyBBImporter {
 				"' . $this->mybbDb->real_escape_string($user['password']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['email']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['userTitle']) . '", 
-				"' . $isAdmin . '"
+				' . $isAdmin . '
 				"' . $this->mybbDb->real_escape_string($user['registrationDate']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['lastActivityTime']) . '", 
 				"' . $this->mybbDb->real_escape_string($user['lastActivityTime']) . '", 
