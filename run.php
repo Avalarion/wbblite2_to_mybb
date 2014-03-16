@@ -52,7 +52,7 @@ class WBBLite2Exporter_MyBBImporter {
 			$this->copyUsers();
 				// Copy Avatars
 			$this->copyBoards();
-			// Copy Threads
+			$this->copyThreads();
 			// Copy Posts
 		}catch(Exception $e) {
 			$this->printLine($e->getMessage());
@@ -209,6 +209,58 @@ class WBBLite2Exporter_MyBBImporter {
 				throw new Exception('Board Query failed: ' . $this->mybbDb->error);
 		}
 	}
+
+	/**
+	 * function copyThreads
+	 * copies Thread from Wbb to myBB
+	 *
+	 * @return void
+	 */
+	protected function copyThreads() {
+		$this->printLine('Copy Threads');
+		$this->printLine('+ Fetching WBB Threads...');
+		$threads = $this->getWbbThreads();
+		$this->printLine('+ Got ' . count($threads) . ' Threads');
+		$this->printLine('+ Will now truncate Threads from MyBB and import WBB Ones');
+		$this->setMyBbThreads($threads);
+		$this->printLine('+ ThreadsImport Done.');
+	}
+
+	/**
+	 * function getWbbThreads
+	 *
+	 * @return array
+	 */
+	protected function getWbbThreads() {
+		$threads = $this->wbbDb->query('SELECT * FROM wbb1_' . $GLOBALS['wbb']['id'] . '_thread;');
+		$threadsArray = array();
+		while(($tmp = $threads->fetch_assoc()) != null)
+			$threadsArray[] = $tmp;
+		return $threadsArray;
+	}
+
+	/**
+	 * function setMyBbThreads
+	 *
+	 * @param array $threads
+	 * @return void
+	 */
+	protected function setMyBbThreads($threads) {
+		$this->mybbDb->query('TRUNCATE mybb_threads;');
+		foreach($threads as $thread) {
+			$this->printVerboseLine('++ Threads: ' . $thread['topic']);
+			$query = 'INSERT INTO mybb_threads (tid, subject, fid) 
+			VAlUES(
+				"' . $this->mybbDb->real_escape_string($thread['threadID']) . '", 
+				"' . $this->mybbDb->real_escape_string($thread['topic']) . '", 
+				"' . $this->mybbDb->real_escape_string($thread['boardID']) . '" 
+			);';
+			if(!$this->mybbDb->query($query))
+				throw new Exception('Thread Query failed: ' . $this->mybbDb->error);
+		}
+	}
+
+
 
 	/**
 	 * function printLine
