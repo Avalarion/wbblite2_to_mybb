@@ -151,7 +151,6 @@ class WBBLite2Exporter_MyBBImporter {
 				1,
 				1,
 				1,
-				1,
 				1
 			);';
 echo $query;
