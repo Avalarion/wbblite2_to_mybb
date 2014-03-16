@@ -53,7 +53,7 @@ class WBBLite2Exporter_MyBBImporter {
 				// Copy Avatars
 			$this->copyBoards();
 			$this->copyThreads();
-			// Copy Posts
+			$this->copyPosts();
 		}catch(Exception $e) {
 			$this->printLine($e->getMessage());
 			return 1;
@@ -260,7 +260,61 @@ class WBBLite2Exporter_MyBBImporter {
 		}
 	}
 
+	/**
+	 * function copyPost
+	 * copies Posts from Wbb to myBB
+	 *
+	 * @return void
+	 */
+	protected function copyPosts() {
+		$this->printLine('Copy Posts');
+		$this->printLine('+ Fetching WBB Posts...');
+		$posts = $this->getWbbPosts();
+		$this->printLine('+ Got ' . count($posts) . ' Posts');
+		$this->printLine('+ Will now truncate Posts from MyBB and import WBB Ones');
+		$this->setMyBbPosts($posts);
+		$this->printLine('+ PostsImport Done.');
+	}
 
+	/**
+	 * function getWbbPosts
+	 * 
+	 * @return array
+	 */
+	protected function getWbbPosts() {
+		$posts = $this->wbbDb->query('SELECT * FROM wbb1_' . $GLOBALS['wbb']['id'] . '_post;');
+		$postsArray = array();
+		while(($tmp = $posts->fetch_assoc()) != null)
+			$postsArray[] = $tmp;
+		return $postsArray;
+	}
+
+	/**
+	 * function setMyBbPosts
+	 *
+	 * @param array $posts
+	 * @return void
+	 */
+	protected function setMyBbPosts($posts) {
+		$this->mybbDb->query('TRUNCATE mybb_posts;');
+		foreach($posts as $post) {
+			$this->printVerboseLine('++ Posts: ' . $post['subject']);
+			$query = 'INSERT INTO mybb_posts (pid, tid, replyto, fid, subject, uid, username, dateline, message) 
+			VAlUES(
+				"' . $this->mybbDb->real_escape_string($post['postID']) . '", 
+				"' . $this->mybbDb->real_escape_string($post['threadID']) . '", 
+				"' . $this->mybbDb->real_escape_string($post['parentPostID']) . '", 
+				"0", ' . '' /** ForumID??? */ . '
+				"' . $this->mybbDb->real_escape_string($post['subject']) . '", 
+				"' . $this->mybbDb->real_escape_string($post['userID']) . '", 
+				"' . $this->mybbDb->real_escape_string($post['username']) . '", 
+				"' . $this->mybbDb->real_escape_string($post['time']) . '", 
+				"' . $this->mybbDb->real_escape_string($post['message']) . '"
+			);';
+			if(!$this->mybbDb->query($query))
+				throw new Exception('Post Query failed: ' . $this->mybbDb->error);
+		}
+	}
 
 	/**
 	 * function printLine
